@@ -43,10 +43,56 @@ order by 1,2
 --Now we can check what country has the highest infection rate compared to the population
 Select location, Population, MAX(CONVERT(float, total_cases)) as HighestInfectionCount, (MAX(CONVERT(float, total_cases)) / NULLIF(CONVERT(float,population), 0))*100 as InfectedPercentage  --imp
 From [Covid deaths and vaccinations]..CovidDeaths
-Where location like '%States%' --imp
+--Where location like '%States%' --imp
 Group by location, population --imp
+order by InfectedPercentage desc
+--results shows that Cyprus (73% so far) and San Marino have the highest percentage of infection, Austria 4th, South Korea 5th (66% so far)
+
+
+--now we're intersted to spot the contries with the highest total deaths per population
+Select location , Max(cast(total_deaths as int)) as TotalDeathCount
+From [Covid deaths and vaccinations]..CovidDeaths
+--Where location like '%States%' --imp
+Group by location 
+order by TotalDeathCount desc
+--we see locations like world, Asia, Europe which are continents and need to be removed
+--by checking the data whenever location has a continent name in it, the continent column is null
+Select * 
+From [Covid deaths and vaccinations]..CovidDeaths
+Where continent is not null
+order by 3,4
+
+--now I update the above query to find the highest total deaths per population
+Select location , Max(cast(total_deaths as int)) as TotalDeathCount
+From [Covid deaths and vaccinations]..CovidDeaths
+Where continent is not null
+Group by location 
+order by TotalDeathCount desc
+--the results shows that USA with 1127152 total deaths has the highest numbers!
+
+--now the same data per continent
+Select continent , Max(cast(total_deaths as int)) as TotalDeathCount
+From [Covid deaths and vaccinations]..CovidDeaths
+Where continent is not null
+Group by continent 
+order by TotalDeathCount desc
+--results show North America with 1127152 is the highest then South America with 704659 TotalDeath Counts!
+
+
+--Let's check Global numbers
+--here we see by each day how total cases (SUM(new_cases)), total deaths (SUM(cast(new_deaths as int))) and are increasing globally! 
+Select date, SUM(new_cases) as TatalCases, SUM(cast(new_deaths as int)) as TotalDeaths, SUM(cast(new_deaths as int)) / NULLIF(SUM(new_cases),0)*100 as DeathPercentage  
+From [Covid deaths and vaccinations]..CovidDeaths
+--Where location like '%States%' --imp
+Where continent is not null
+Group by date
 order by 1,2
 
-
-
-
+--by removing the date, we can see the overal numbers across the world
+Select SUM(new_cases) as TatalCases, SUM(cast(new_deaths as int)) as TotalDeaths, SUM(cast(new_deaths as int)) / NULLIF(SUM(new_cases),0)*100 as DeathPercentage  
+From [Covid deaths and vaccinations]..CovidDeaths
+--Where location like '%States%' --imp
+Where continent is not null
+--Group by date
+order by 1,2
+-- result shows TatalCases 770166399, TotalDeaths 6962719, DeathPercentage 0.904053852393527
