@@ -96,3 +96,38 @@ Where continent is not null
 --Group by date
 order by 1,2
 -- result shows TatalCases 770166399, TotalDeaths 6962719, DeathPercentage 0.904053852393527
+
+--2nd Stage: working on CovidVaccination table
+--here I join two tables on data and location
+Select *
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+
+--total vaccinations in the world
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+where death.continent is not null
+order by 2,3 --so that location starts with Afghanistan
+
+--now I want to find the total vaccinations (sum(vac.new_vaccinations)) per country (reset when country name is changed using partition by) over this joined tables
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location) as TotalVaccinationsPerCountry
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+where death.continent is not null
+order by 2,3
+
+--now I would like to see the total vaccinations in a cumulative way, so partition by should be ordered by location and date
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location order by death.location, death.date) as TotalVaccinationsPerCountry
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+where death.continent is not null
+order by 2,3
