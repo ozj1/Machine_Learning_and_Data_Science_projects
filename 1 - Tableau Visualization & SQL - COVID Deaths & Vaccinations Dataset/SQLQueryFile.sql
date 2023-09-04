@@ -97,6 +97,15 @@ Where continent is not null
 order by 1,2
 -- result shows TatalCases 770166399, TotalDeaths 6962719, DeathPercentage 0.904053852393527
 
+--European Union is part of Europe, so I exclude it to see total deaths for each continent
+Select location, SUM(cast(new_deaths as int)) as TotalDeaths
+From [Covid deaths and vaccinations]..CovidDeaths
+--Where location like '%States%' --imp
+Where continent is null and location not in ('World', 'European Union', 'International', 'Low income', 'High income', 'Upper middle income','Lower middle income' )--this is where the continent data is stored, location column has the continent name in it in this case
+Group by location
+order by TotalDeaths desc
+
+
 --2nd Stage: working on CovidVaccination table
 --here I join two tables on data and location
 Select *
