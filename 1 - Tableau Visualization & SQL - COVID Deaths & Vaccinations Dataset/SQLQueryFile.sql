@@ -123,11 +123,51 @@ join [Covid deaths and vaccinations]..CovidVaccinations vac
 where death.continent is not null
 order by 2,3
 
---now I would like to see the total vaccinations in a cumulative way, so partition by should be ordered by location and date
-Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location order by death.location, death.date) as TotalVaccinationsPerCountry
+--now I would like to see the total vaccinations in a cumulative way, so partition by should be ordered by date so we can see how total number increases day by day
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location order by death.date) as CumulativeTotalVaccinationsPerCountry
 From [Covid deaths and vaccinations]..CovidDeaths death
 join [Covid deaths and vaccinations]..CovidVaccinations vac
     On death.location=vac.location
 	and death.date= vac.date
 where death.continent is not null
 order by 2,3
+
+--USING CTE
+--now I make CumulativeTotalVaccinations name acceptable to be used in the select command using CTE
+With PopvsVac (Continent,Location,Date,Population,New_Vaccinations,CumulativeTotalVaccinations)
+as
+(
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location order by death.location, death.date) as CumulativeTotalVaccinations
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+where death.continent is not null
+--order by 2,3
+)
+Select *, (CumulativeTotalVaccinations/Population)*100 as CumulativeTotalVaccinationsPercentage
+From PopvsVac
+
+
+--TEMP TABLE
+DROP Table if exists #PercentPopulationVaccinated --in case of changing the query the new temp table overwrites the previous one
+Create Table #PercentPopulationVaccinated
+(
+--specifying the data type
+Continent nvarchar(255),
+Location nvarchar(255),
+Date datetime,
+Population numeric,
+New_Vaccinations numeric,
+CumulativeTotalVaccinations numeric,
+)
+insert into #PercentPopulationVaccinated
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location order by death.location, death.date) as CumulativeTotalVaccinations
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+where death.continent is not null
+--order by 2,3
+Select *, (CumulativeTotalVaccinations/Population)*100 as CumulativeTotalVaccinationsPercentage
+From #PercentPopulationVaccinated
