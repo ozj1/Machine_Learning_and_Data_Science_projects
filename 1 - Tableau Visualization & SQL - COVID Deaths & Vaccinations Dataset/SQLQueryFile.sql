@@ -171,3 +171,17 @@ where death.continent is not null
 --order by 2,3
 Select *, (CumulativeTotalVaccinations/Population)*100 as CumulativeTotalVaccinationsPercentage
 From #PercentPopulationVaccinated
+
+--Creating View to store data for Tableau visualization
+Create View PercentPopulationVaccinated as
+Select death.continent,death.location,death.date,death.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as bigint)) OVER (Partition by death.location order by death.location, death.date) as CumulativeTotalVaccinations
+From [Covid deaths and vaccinations]..CovidDeaths death
+join [Covid deaths and vaccinations]..CovidVaccinations vac
+    On death.location=vac.location
+	and death.date= vac.date
+where death.continent is not null
+--order by 2,3
+
+--for checking the view generated
+Select*
+From PercentPopulationVaccinated
