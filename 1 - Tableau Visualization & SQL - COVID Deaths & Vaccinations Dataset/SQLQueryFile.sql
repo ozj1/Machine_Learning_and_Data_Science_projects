@@ -40,6 +40,7 @@ Where location like '%States%' --imp
 order by 1,2
 --results shows as of Aug 30th 2023 around 30% of the population were infected by COVID
 
+--Table 3 for Tableau
 --Now we can check what country has the highest infection rate compared to the population
 Select location, Population, MAX(CONVERT(float, total_cases)) as HighestInfectionCount, (MAX(CONVERT(float, total_cases)) / NULLIF(CONVERT(float,population), 0))*100 as InfectedPercentage  --imp
 From [Covid deaths and vaccinations]..CovidDeaths
@@ -48,6 +49,12 @@ Group by location, population --imp
 order by InfectedPercentage desc
 --results shows that Cyprus (73% so far) and San Marino have the highest percentage of infection, Austria 4th, South Korea 5th (66% so far)
 
+--Table 4 for Tableau (similar to Table 3 but has dates)
+Select location, Population,date, MAX(CONVERT(float, total_cases)) as HighestInfectionCount, (MAX(CONVERT(float, total_cases)) / NULLIF(CONVERT(float,population), 0))*100 as InfectedPercentage  --imp
+From [Covid deaths and vaccinations]..CovidDeaths
+--Where location like '%States%' --imp
+Group by location, population, date --imp
+order by InfectedPercentage desc
 
 --now we're intersted to spot the contries with the highest total deaths per population
 Select location , Max(cast(total_deaths as int)) as TotalDeathCount
@@ -88,6 +95,7 @@ Where continent is not null
 Group by date
 order by 1,2
 
+--Table 1 for Tableau
 --by removing the date, we can see the overal numbers across the world
 Select SUM(new_cases) as TatalCases, SUM(cast(new_deaths as int)) as TotalDeaths, SUM(cast(new_deaths as int)) / NULLIF(SUM(new_cases),0)*100 as DeathPercentage  
 From [Covid deaths and vaccinations]..CovidDeaths
@@ -97,6 +105,7 @@ Where continent is not null
 order by 1,2
 -- result shows TatalCases 770166399, TotalDeaths 6962719, DeathPercentage 0.904053852393527
 
+--Table 2 for Tableau
 --European Union is part of Europe, so I exclude it to see total deaths for each continent
 Select location, SUM(cast(new_deaths as int)) as TotalDeaths
 From [Covid deaths and vaccinations]..CovidDeaths
